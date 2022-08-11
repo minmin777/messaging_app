@@ -22,15 +22,13 @@ class ChatConsumer(WebsocketConsumer):
         n_messages = data.get("number_of_messages", 20)
         messages = Message.get_n_messages(n=n_messages)
 
-        self.send_chat_message(json.dumps({"event": "last_messages", "messages": self.to_json(messages)}))
+        self.send_chat_message(json.dumps({"event": "last_messages", "messages": self.to_messages_json(messages)}))
 
     def create_message(self, data):
         username = data["user"]
         content = data["content"]
         user, _ = User.objects.get_or_create(username=username)
-        print("create message ", user)
         message = Message.objects.create(user=user, message_content=content)
-        print("create message object ", message.message_content)
 
         response = {
             "event": "message_created",
@@ -43,11 +41,9 @@ class ChatConsumer(WebsocketConsumer):
             }
         }
 
-        print("create message ", response)
-
         self.send_chat_message(json.dumps(response))
 
-    def to_json(self, messages):
+    def to_messages_json(self, messages):
         all_messages = []
         for message in messages:
             all_messages.append({
